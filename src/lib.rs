@@ -9,7 +9,12 @@ use std::net::TcpListener;
 
 pub use crate::startup::run;
 
-pub async fn spawn_app() -> String {
+pub struct TestApp {
+    pub address: String,
+    pub db_pool: PgPool,
+}
+
+pub async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0")
         .expect("Error binding to random port.");
     let port = listener.local_addr().unwrap().port();
@@ -20,13 +25,16 @@ pub async fn spawn_app() -> String {
             .await
             .expect("Failed to connect to Postgres DB: ");
 
-    let server =
-        run(listener, connection_pool).expect("Failed to bind address.");
+    let server = run(listener, connection_pool.clone())
+        .expect("Failed to bind address.");
 
     // NOTES(calco): Non binding let, as we specifically DO NOT want to wait for completion.
     // (it never finishes)
     let sp = tokio::spawn(server);
     drop(sp);
 
-    format!("127.0.0.1:{}", port)
+    TestApp {
+        address: format!("127.0.0.1:{}", port),
+        db_pool: connection_pool,
+    }
 }

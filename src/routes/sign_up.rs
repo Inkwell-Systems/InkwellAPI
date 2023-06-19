@@ -4,7 +4,7 @@ use serde::Deserialize;
 use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct SignUpParams {
     display_name: String,
     email: String,
@@ -17,6 +17,8 @@ pub async fn sign_up(
     connection_pool: web::Data<PgPool>,
 ) -> HttpResponse {
     // TODO(calco): Actually do stuff database.
+
+    println!("{:?}", json);
 
     let uid = Uuid::new_v4();
     let created_at = Utc::now().date_naive();

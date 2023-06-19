@@ -5,19 +5,16 @@ use std::collections::HashMap;
 #[tokio::test]
 async fn sign_up_valid_json() {
     // Arrange
-    let addr = inkwell_api::spawn_app().await;
-    let test_url = &format!("http://{}/sign_up", &addr);
+    let app = inkwell_api::spawn_app().await;
+    let test_url = &format!("http://{}/sign_up", &app.address);
 
     let mut user_data = HashMap::new();
-    user_data.insert("display_name", "Calcopod");
-    user_data.insert("email", "calcopoddev@gmail.com");
+    user_data.insert("display_name", "user_insert_test");
+    user_data.insert("email", "user_insert_test@gmail.com");
+    user_data.insert("profile_url", "user_insert_test/profile");
 
     let config = get_config().expect("Failed to load config: ");
     let connect_str = config.db_settings.get_connection_string();
-
-    let mut connection = PgConnection::connect(&connect_str)
-        .await
-        .expect("Connection to Postgres DB failed: ");
 
     // Act
     let client = reqwest::Client::new();
@@ -33,19 +30,19 @@ async fn sign_up_valid_json() {
 
     let saved =
         sqlx::query!("SELECT display_name, email, created_at FROM users")
-            .fetch_one(&mut connection)
+            .fetch_one(&app.db_pool)
             .await
             .expect("Failed to fetch saved user.");
 
-    assert_eq!(saved.display_name, "Calcopod");
-    assert_eq!(saved.email, "calcopoddev@gmail.com");
+    assert_eq!(saved.display_name, user_data["display_name"]);
+    assert_eq!(saved.email, user_data["email"]);
 }
 
 #[tokio::test]
 async fn sign_up_invalid_json() {
     // Arrange
-    let addr = inkwell_api::spawn_app().await;
-    let test_url = &format!("http://{}/sign_up", &addr);
+    let app = inkwell_api::spawn_app().await;
+    let test_url = &format!("http://{}/sign_up", &app.address);
 
     let test_cases = vec![
         ("", "", "Missing both fields."),

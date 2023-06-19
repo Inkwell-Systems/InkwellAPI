@@ -1,8 +1,8 @@
 ﻿#[tokio::test]
 async fn health_check_works() {
     // Arrange
-    let addr = inkwell_api::spawn_app().await;
-    let test_url = &format!("http://{}/health_check", &addr);
+    let app = inkwell_api::spawn_app().await;
+    let test_url = &format!("http://{}/health_check", &app.address);
 
     // Act
     let client = reqwest::Client::new();
