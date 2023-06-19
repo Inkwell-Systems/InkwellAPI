@@ -16,6 +16,9 @@ name = "inkwell-api"
 actix-web = "4"
 tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread"] }
 
+serde = { version = "1.0.164", features = ["derive"] }
+serde_json = "1.0.97"
+
 #[target.x86_64-pc-windows-msvc]
 #rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 #[target.x86_64-pc-windows-gnu]
@@ -23,4 +26,4 @@ tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread"] }
 
 [dev-dependencies]
 
-reqwest = "0.11.18"
+reqwest = { version = "0.11.18", features = ["json"] }
