@@ -1,15 +1,21 @@
 use inkwell_api::configuration::get_config;
 use inkwell_api::run;
+use sqlx::{Connection, PgConnection, PgPool};
 use std::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     let config = get_config().expect("Failed to read configuration");
-    
+
+    let connection_pool =
+        PgPool::connect(&config.db_settings.get_connection_string())
+            .await
+            .expect("Failed to connect to Postgres DB: ");
+
     let host = "127.0.0.1";
     let addr = format!("{}:{}", host, config.application_port);
     let listener = TcpListener::bind(addr).unwrap();
-    
-    let server = run(listener).unwrap();
+
+    let server = run(listener, connection_pool).unwrap();
     server.await
 }

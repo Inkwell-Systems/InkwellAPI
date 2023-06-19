@@ -1,7 +1,7 @@
 ﻿#[tokio::test]
 async fn health_check_works() {
     // Arrange
-    let addr = inkwell_api::spawn_app();
+    let addr = inkwell_api::spawn_app().await;
     let test_url = &format!("http://{}/health_check", &addr);
 
     // Act
