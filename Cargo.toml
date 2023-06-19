@@ -16,10 +16,10 @@ name = "inkwell-api"
 actix-web = "4"
 tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread"] }
 
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
-[target.x86_64-pc-windows-gnu]
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+#[target.x86_64-pc-windows-msvc]
+#rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+#[target.x86_64-pc-windows-gnu]
+#rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 [dev-dependencies]
 
