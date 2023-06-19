@@ -24,6 +24,18 @@ serde_json = "1.0.97"
 #[target.x86_64-pc-windows-gnu]
 #rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
+[dependencies.sqlx]
+version = "0.6.3"
+default-features = false
+features = [
+    "runtime-tokio-rustls",
+    "macros",
+    "postgres",
+    "uuid",
+    "chrono",
+    "migrate"
+]
+
 [dev-dependencies]
 
 reqwest = { version = "0.11.18", features = ["json"] }
