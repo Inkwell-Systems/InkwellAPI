@@ -2,13 +2,15 @@
 pub mod routes;
 pub mod startup;
 
+pub mod telemetry;
+
 // TODO(calco): Figure out what should be public and what should be private.
+pub use crate::startup::run;
+
 use crate::configuration::get_config;
 use sqlx::{Executor, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
-
-pub use crate::startup::run;
 
 pub struct TestApp {
     pub address: String,
