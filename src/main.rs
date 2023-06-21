@@ -1,6 +1,7 @@
 use inkwell_api::configuration::get_config;
 use inkwell_api::run;
 use inkwell_api::telemetry::{get_subscriber, init_subscriber};
+use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use std::net::TcpListener;
 
@@ -11,10 +12,11 @@ async fn main() -> Result<(), std::io::Error> {
 
     // Configure application.
     let config = get_config().expect("Failed to read configuration");
-    let connection_pool =
-        PgPool::connect(&config.db_settings.get_connection_string())
-            .await
-            .expect("Failed to connect to Postgres DB: ");
+    let connection_pool = PgPool::connect(
+        config.db_settings.get_connection_string().expose_secret(),
+    )
+    .await
+    .expect("Failed to connect to Postgres DB: ");
 
     let host = "127.0.0.1";
     let addr = format!("{}:{}", host, config.application_port);

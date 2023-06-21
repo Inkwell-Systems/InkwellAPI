@@ -10,6 +10,7 @@ pub use crate::startup::run;
 use crate::configuration::get_config;
 use crate::telemetry::{get_subscriber, init_subscriber};
 use once_cell::sync::Lazy;
+use secrecy::{ExposeSecret, Secret};
 use sqlx::{Executor, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
@@ -32,7 +33,7 @@ pub async fn spawn_app() -> TestApp {
     let port = listener.local_addr().unwrap().port();
 
     let mut config = get_config().expect("Failed to get config: ");
-    config.db_settings.db_name = Uuid::new_v4().to_string();
+    config.db_settings.db_name = Secret::new(Uuid::new_v4().to_string());
 
     let connection_pool = configure_database(&config.db_settings).await;
 
@@ -60,14 +61,18 @@ pub async fn configure_database(
             .expect("Failed to connect to Postgres.");
 
     connection
-        .execute(&*format!("CREATE DATABASE \"{}\";", config.db_name))
+        .execute(&*format!(
+            "CREATE DATABASE \"{}\";",
+            config.db_name.expose_secret()
+        ))
         .await
         .expect("Failed to create database.");
 
     // Migrate database
-    let connection_pool = PgPool::connect(&config.get_connection_string())
-        .await
-        .expect("Failed to connect to Postgres.");
+    let connection_pool =
+        PgPool::connect(config.get_connection_string().expose_secret())
+            .await
+            .expect("Failed to connect to Postgres.");
 
     sqlx::migrate!("./migrations")
         .run(&connection_pool)
