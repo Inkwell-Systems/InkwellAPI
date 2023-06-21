@@ -16,7 +16,6 @@ pub struct SignUpParams {
     name = "Adding a new subscriber",
     skip(json, connection_pool),
     fields(
-        request_id = %Uuid::new_v4(),
         subscriber_email = %json.email,
         subscriber_name = %json.display_name
     )

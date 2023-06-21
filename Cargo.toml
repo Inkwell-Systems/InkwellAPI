@@ -25,6 +25,7 @@ env_logger = "0.10.0"
 tracing = { version = "0.1.37", features = ["log"] }
 tracing-log = "0.1.3"
 tracing-subscriber = { version = "0.3.17", features = ["registry", "env-filter"] }
+tracing-actix-web = "0.7.5"
 
 secrecy = { version = "0.8.0", features = ["serde"] }
 
