@@ -18,8 +18,16 @@ pub struct DatabaseSettings {
 impl DatabaseSettings {
     pub fn get_connection_string(&self) -> String {
         format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.username, self.password, self.host, self.port, self.db_name
+            "{}/{}",
+            self.get_connection_string_without_db(),
+            self.db_name
+        )
+    }
+
+    pub fn get_connection_string_without_db(&self) -> String {
+        format!(
+            "postgres://{}:{}@{}:{}",
+            self.username, self.password, self.host, self.port
         )
     }
 }

@@ -36,6 +36,8 @@ async fn sign_up_valid_json() {
 
     assert_eq!(saved.display_name, user_data["display_name"]);
     assert_eq!(saved.email, user_data["email"]);
+
+    // !REVERT
 }
 
 #[tokio::test]

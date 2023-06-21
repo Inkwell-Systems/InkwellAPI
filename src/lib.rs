@@ -4,8 +4,9 @@ pub mod startup;
 
 // TODO(calco): Figure out what should be public and what should be private.
 use crate::configuration::get_config;
-use sqlx::PgPool;
+use sqlx::{Executor, PgPool};
 use std::net::TcpListener;
+use uuid::Uuid;
 
 pub use crate::startup::run;
 
@@ -19,11 +20,10 @@ pub async fn spawn_app() -> TestApp {
         .expect("Error binding to random port.");
     let port = listener.local_addr().unwrap().port();
 
-    let config = get_config().expect("Failed to get config: ");
-    let connection_pool =
-        PgPool::connect(&config.db_settings.get_connection_string())
-            .await
-            .expect("Failed to connect to Postgres DB: ");
+    let mut config = get_config().expect("Failed to get config: ");
+    config.db_settings.db_name = Uuid::new_v4().to_string();
+
+    let connection_pool = configure_database(&config.db_settings).await;
 
     let server = run(listener, connection_pool.clone())
         .expect("Failed to bind address.");
@@ -37,4 +37,31 @@ pub async fn spawn_app() -> TestApp {
         address: format!("127.0.0.1:{}", port),
         db_pool: connection_pool,
     }
+}
+
+pub async fn configure_database(
+    config: &configuration::DatabaseSettings,
+) -> PgPool {
+    // Create database
+    let connection =
+        PgPool::connect(&config.get_connection_string_without_db())
+            .await
+            .expect("Failed to connect to Postgres.");
+
+    connection
+        .execute(&*format!("CREATE DATABASE \"{}\";", config.db_name))
+        .await
+        .expect("Failed to create database.");
+
+    // Migrate database
+    let connection_pool = PgPool::connect(&config.get_connection_string())
+        .await
+        .expect("Failed to connect to Postgres.");
+
+    sqlx::migrate!("./migrations")
+        .run(&connection_pool)
+        .await
+        .expect("Failed to migrate database.");
+
+    connection_pool
 }
