@@ -8,6 +8,8 @@ pub mod telemetry;
 pub use crate::startup::run;
 
 use crate::configuration::get_config;
+use crate::telemetry::{get_subscriber, init_subscriber};
+use once_cell::sync::Lazy;
 use sqlx::{Executor, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
@@ -17,7 +19,14 @@ pub struct TestApp {
     pub db_pool: PgPool,
 }
 
+pub static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = get_subscriber("inkwell".into(), "info".into());
+    init_subscriber(subscriber);
+});
+
 pub async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+
     let listener = TcpListener::bind("127.0.0.1:0")
         .expect("Error binding to random port.");
     let port = listener.local_addr().unwrap().port();

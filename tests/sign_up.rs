@@ -1,6 +1,4 @@
-﻿use inkwell_api::configuration::get_config;
-use sqlx::{Connection, PgConnection};
-use std::collections::HashMap;
+﻿use std::collections::HashMap;
 
 #[tokio::test]
 async fn sign_up_valid_json() {
@@ -12,9 +10,6 @@ async fn sign_up_valid_json() {
     user_data.insert("display_name", "user_insert_test");
     user_data.insert("email", "user_insert_test@gmail.com");
     user_data.insert("profile_url", "user_insert_test/profile");
-
-    let config = get_config().expect("Failed to load config: ");
-    let connect_str = config.db_settings.get_connection_string();
 
     // Act
     let client = reqwest::Client::new();

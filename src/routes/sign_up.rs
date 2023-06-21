@@ -18,7 +18,7 @@ pub async fn sign_up(
     connection_pool: web::Data<PgPool>,
 ) -> HttpResponse {
     let req_uid = Uuid::new_v4();
-    let req_span = tracing::info_span!(
+    let _req_span = tracing::info_span!(
         "Sign up request received for user",
         %req_uid,
         sub_email = %json.email,
