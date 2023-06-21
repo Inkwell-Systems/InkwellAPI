@@ -1,6 +1,9 @@
-﻿use config::{Environment, FileFormat};
+﻿use config::FileFormat;
 use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
+use serde_aux::field_attributes::deserialize_number_from_string;
+use sqlx::postgres::{PgConnectOptions, PgSslMode};
+use sqlx::ConnectOptions;
 
 #[derive(Deserialize)]
 pub struct Settings {
@@ -10,33 +13,45 @@ pub struct Settings {
 
 #[derive(Deserialize)]
 pub struct ApplicationSettings {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub address: String,
 }
 
 #[derive(Deserialize)]
 pub struct DatabaseSettings {
-    pub username: String,
-    pub password: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
+    pub username: String,
+    pub password: String,
     pub db_name: Secret<String>,
+    pub require_ssl: bool,
 }
 
 impl DatabaseSettings {
-    pub fn get_connection_string(&self) -> Secret<String> {
-        Secret::new(format!(
-            "{}/{}",
-            self.get_connection_string_without_db(),
-            self.db_name.expose_secret()
-        ))
+    pub fn get_connection_details(&self) -> PgConnectOptions {
+        let mut options = self
+            .get_connection_details_no_db()
+            .database(self.db_name.expose_secret());
+        options.log_statements(log::LevelFilter::Trace);
+
+        options
     }
 
-    pub fn get_connection_string_without_db(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}",
-            self.username, self.password, self.host, self.port
-        )
+    pub fn get_connection_details_no_db(&self) -> PgConnectOptions {
+        let ssl_mode = if self.require_ssl {
+            PgSslMode::Require
+        } else {
+            PgSslMode::Prefer
+        };
+
+        PgConnectOptions::new()
+            .host(&self.host)
+            .port(self.port)
+            .username(&self.username)
+            .password(&self.password)
+            .ssl_mode(ssl_mode)
     }
 }
 
@@ -73,6 +88,11 @@ pub fn get_config() -> Result<Settings, config::ConfigError> {
                 }),
             FileFormat::Json5,
         ))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
         .build()?;
 
     settings.try_deserialize::<Settings>()

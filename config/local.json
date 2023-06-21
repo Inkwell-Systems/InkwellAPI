@@ -1,5 +1,8 @@
 ﻿{
     "app_settings": {
         "address": "127.0.0.1"
+    },
+    "db_settings": {
+        "require_ssl": false
     }
 }

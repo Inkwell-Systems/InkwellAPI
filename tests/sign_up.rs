@@ -1,9 +1,14 @@
-﻿use std::collections::HashMap;
+﻿// TODO(calco): This is highly questionable. Should be replaced
+// with a separate cargo library called utils or something.
+#[path = "./g.rs"]
+mod g;
+
+use std::collections::HashMap;
 
 #[tokio::test]
 async fn sign_up_valid_json() {
     // Arrange
-    let app = inkwell_api::spawn_app().await;
+    let app = g::spawn_app().await;
     let test_url = &format!("http://{}/sign_up", &app.address);
 
     let mut user_data = HashMap::new();
@@ -38,7 +43,7 @@ async fn sign_up_valid_json() {
 #[tokio::test]
 async fn sign_up_invalid_json() {
     // Arrange
-    let app = inkwell_api::spawn_app().await;
+    let app = g::spawn_app().await;
     let test_url = &format!("http://{}/sign_up", &app.address);
 
     let test_cases = vec![

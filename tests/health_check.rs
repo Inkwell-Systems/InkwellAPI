@@ -1,7 +1,12 @@
-﻿#[tokio::test]
+﻿// TODO(calco): This is highly questionable. Should be replaced
+// with a separate cargo library called utils or something.
+#[path = "./g.rs"]
+mod g;
+
+#[tokio::test]
 async fn health_check_works() {
     // Arrange
-    let app = inkwell_api::spawn_app().await;
+    let app = g::spawn_app().await;
     let test_url = &format!("http://{}/health_check", &app.address);
 
     // Act
