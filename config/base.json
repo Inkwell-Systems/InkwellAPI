@@ -1,0 +1,12 @@
+﻿{
+    "app_settings": {
+        "port": 8000
+    },
+    "db_settings": {
+        "host": "127.0.0.1",
+        "port": 5432,
+        "username": "postgres",
+        "password": "password",
+        "db_name": "inkwell"
+    }
+}
