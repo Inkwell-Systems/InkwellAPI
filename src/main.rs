@@ -4,6 +4,7 @@ use inkwell_api::telemetry::{get_subscriber, init_subscriber};
 use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use std::net::TcpListener;
+use tracing::info_span;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -17,8 +18,16 @@ async fn main() -> Result<(), std::io::Error> {
     )
     .expect("Failed to connect to Postgres DB: ");
 
-    let host = "127.0.0.1";
-    let addr = format!("{}:{}", host, config.app_settings.port);
+    info_span!(
+        "Starting server.",
+        config.app_settings.address,
+        config.app_settings.port
+    );
+
+    let addr = format!(
+        "{}:{}",
+        config.app_settings.address, config.app_settings.port
+    );
     let listener = TcpListener::bind(addr).unwrap();
 
     let server = run(listener, connection_pool).unwrap();

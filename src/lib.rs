@@ -74,10 +74,13 @@ pub async fn configure_database(
             .await
             .expect("Failed to connect to Postgres.");
 
-    sqlx::migrate!("./migrations")
-        .run(&connection_pool)
-        .await
-        .expect("Failed to migrate database.");
+    // TODO(calco): Maybe uncomment this in the future. Not fully certain
+    // whether migrations should be handled each time I run or on new things. 
+    
+    // sqlx::migrate!("./migrations")
+    //     .run(&connection_pool)
+    //     .await
+    //     .expect("Failed to migrate database.");
 
     connection_pool
 }

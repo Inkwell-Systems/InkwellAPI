@@ -1,0 +1,11 @@
+﻿.git
+.github
+.idea
+scripts/
+target/
+tests/
+.env
+.gitignore
+LICENSE
+README.md
+rustfmt.toml

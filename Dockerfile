@@ -1,22 +1,37 @@
-﻿FROM rust:1.67.0
-
+﻿# Builder stage
+FROM lukemathwalker/cargo-chef:latest-rust-1.70.0 AS chef
 WORKDIR /app
 
-#ENV CARGO_HOME=/workdir/.cargo               
+RUN apt update && apt install lld clang -y
 
-COPY ./Cargo.toml ./Cargo.lock ./                       
+FROM chef AS planner
+COPY . .
 
-COPY ./src ./src
-COPY ./migrations ./migrations
+RUN cargo chef prepare --recipe-path recipe.json
 
-COPY ./configuration ./configuration
-COPY ./sqlx-data.json ./sqlx-data.json
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
 
-ENV DATABASE_URL "postgres://postgres:password@127.0.0.1:5432/inkwell"
-ENV APP_ENV production
+RUN cargo chef cook --release --recipe-path recipe.json
 
+COPY . .
 ENV SQLX_OFFLINE true
 
-RUN cargo build --release
+RUN cargo build --release --bin inkwell-api
 
-CMD ["./target/release/inkwell-api"]
+
+
+FROM debian:bullseye-slim AS runtime
+WORKDIR /app
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/release/inkwell-api inkwell-api
+COPY config config
+
+ENV APP_ENV production
+
+ENTRYPOINT ["./inkwell-api"]
