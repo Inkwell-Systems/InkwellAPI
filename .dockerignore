@@ -1,10 +1,10 @@
 ﻿.git
 .github
 .idea
+migrations/
 scripts/
 target/
 tests/
-.env
 .gitignore
 LICENSE
 README.md

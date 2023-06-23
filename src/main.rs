@@ -3,7 +3,7 @@ use inkwell_api::run;
 use inkwell_api::telemetry::{get_subscriber, init_subscriber};
 use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
-use tracing::info_span;
+use tracing::{info_span, trace_span};
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -17,9 +17,9 @@ async fn main() -> Result<(), std::io::Error> {
         .connect_lazy_with(config.db_settings.get_connection_details());
 
     info_span!(
-        "Starting server.",
-        config.app_settings.address,
-        config.app_settings.port
+        "I am done with this.",
+        config.db_settings.port,
+        config.db_settings.host,
     );
 
     let addr = format!(
