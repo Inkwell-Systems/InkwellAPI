@@ -30,34 +30,16 @@ pub async fn sign_up(
 ) -> HttpResponse {
     // Use json.0 due to ownership stuff.
 
-    let display_name = match DisplayName::new(json.0.display_name) {
-        Ok(d_name) => d_name,
-        Err(err) => {
-            println!("{}", err);
-            return HttpResponse::BadRequest().finish();
-        }
+    let user_i = match UserIncomplete::parse(
+        json.0.email,
+        json.0.display_name,
+        json.0.profile_url,
+    ) {
+        Ok(user_i) => user_i,
+        Err(err) => return HttpResponse::BadRequest().finish(),
     };
 
-    let email = match Email::new(json.0.email) {
-        Ok(d_email) => d_email,
-        Err(err) => {
-            println!("{}", err);
-            return HttpResponse::BadRequest().finish();
-        }
-    };
-
-    let profile_url = json.0.profile_url;
-    let result = add_user_to_db(
-        UserIncomplete {
-            email,
-            display_name,
-            profile_url,
-        },
-        &connection_pool,
-    )
-    .await;
-
-    match result {
+    match add_user_to_db(user_i, &connection_pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(err) => {
             tracing::error!("Error saving user to database: {:?}.", err);

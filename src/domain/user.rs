@@ -24,3 +24,16 @@ impl User {
         }
     }
 }
+
+impl UserIncomplete {
+    pub fn parse(email: String, display_name: String, profile_url: String) -> Result<UserIncomplete, String> {
+        let display_name = DisplayName::new(display_name)?;
+        let email = Email::new(email)?;
+        
+        Ok(UserIncomplete {
+            email,
+            display_name,
+            profile_url
+        })
+    }
+}
