@@ -1,10 +1,11 @@
-﻿use actix_web::{post, web, HttpResponse};
+﻿use crate::domain::{DisplayName, UserIncomplete};
+use actix_web::{post, web, HttpResponse};
 use chrono::Utc;
 use serde::Deserialize;
 use sqlx::PgPool;
-use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
+// TODO(calco): Consider adding this to the domain?
 #[derive(Deserialize, Debug)]
 pub struct SignUpParams {
     display_name: String,
@@ -25,11 +26,20 @@ pub async fn sign_up(
     json: web::Json<SignUpParams>,
     connection_pool: web::Data<PgPool>,
 ) -> HttpResponse {
-    if !is_valid_name(&json.display_name) {
-        return HttpResponse::BadRequest().finish();
-    }
+    // Use json.0 due to ownership stuff.
+    let display_name = DisplayName::new(json.0.display_name);
+    let email = json.0.email;
+    let profile_url = json.0.profile_url;
 
-    let result = add_user_to_db(&json, &connection_pool).await;
+    let result = add_user_to_db(
+        UserIncomplete {
+            email,
+            display_name,
+            profile_url,
+        },
+        &connection_pool,
+    )
+    .await;
 
     match result {
         Ok(_) => HttpResponse::Ok().finish(),
@@ -40,24 +50,12 @@ pub async fn sign_up(
     }
 }
 
-pub fn is_valid_name(name: &str) -> bool {
-    let forbidden_chars = "/(){}[]|\"\\<>\'";
-
-    let whitespace_check = name.trim().is_empty();
-    let graphesme_check = name.graphemes(true).count() > 256;
-    let forbidden_chars_check =
-        name.chars().any(|c| forbidden_chars.contains(c));
-
-    let f = whitespace_check || graphesme_check || forbidden_chars_check;
-    !f
-}
-
 #[tracing::instrument(
     name = "Saving user details to database.",
-    skip(json, connection_pool)
+    skip(i_user, connection_pool)
 )]
 async fn add_user_to_db(
-    json: &web::Json<SignUpParams>,
+    i_user: UserIncomplete,
     connection_pool: &web::Data<PgPool>,
 ) -> Result<(), sqlx::Error> {
     let uid = Uuid::new_v4();
@@ -68,9 +66,9 @@ async fn add_user_to_db(
         VALUES ($1, $2, $3, $4, $5)
         "#,
         uid,
-        json.display_name,
-        json.email,
-        json.profile_url,
+        i_user.display_name.inner_ref(),
+        i_user.email,
+        i_user.profile_url,
         created_at
     )
     .execute(connection_pool.get_ref())
