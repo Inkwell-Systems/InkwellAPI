@@ -47,23 +47,40 @@ async fn sign_up_invalid_json() {
     let app = g::spawn_app().await;
     let test_url = &format!("http://{}/sign_up", &app.address);
 
-    let test_cases = vec![
-        ("", "", "Missing both fields."),
-        ("email", "calcopoddev@gmail.com", "Missing display name."),
-        ("display_name", "Calcopod", "Missing email."),
+    let test_cases: Vec<(SignUpParams, &str)> = vec![
+        (
+            SignUpParams {
+                display_name: "".into(),
+                email: "".into(),
+                profile_url: "some_profile_url".into(),
+            },
+            "Empty display name.",
+        ),
+        (
+            SignUpParams {
+                display_name: "random".into(),
+                email: "".into(),
+                profile_url: "another_profile_url".into(),
+            },
+            "Empty email.",
+        ),
+        (
+            SignUpParams {
+                display_name: "".into(),
+                email: "random".into(),
+                profile_url: "another_profile_url".into(),
+            },
+            "Empty email.",
+        ),
     ];
 
     let client = reqwest::Client::new();
 
-    let mut map = HashMap::new();
-    for (key, value, error_message) in test_cases {
-        map.clear();
-        map.insert(key, value);
-
+    for (request, error) in test_cases {
         // Act
         let response = client
             .post(test_url)
-            .json(&map)
+            .json(&request)
             .send()
             .await
             .expect("Failed to execute request.");
@@ -73,7 +90,7 @@ async fn sign_up_invalid_json() {
             400,
             response.status().as_u16(),
             "The API did not fail when the sign_up payload was: {}",
-            error_message
+            error
         );
     }
 }
