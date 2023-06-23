@@ -13,6 +13,8 @@ pub struct SignUpParams {
     pub profile_url: String,
 }
 
+// TODO(calco): Implement proper actix error handling.
+// https://actix.rs/docs/errors/
 #[post("/sign_up")]
 #[tracing::instrument(
     name = "Adding a new subscriber",

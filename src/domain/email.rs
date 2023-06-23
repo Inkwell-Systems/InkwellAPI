@@ -53,3 +53,28 @@ fn is_valid_email(email: &str) -> bool {
 
     true
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::domain::Email;
+    use fake::faker::internet::en::SafeEmail;
+    use fake::Fake;
+    use quickcheck::{Arbitrary, Gen};
+    use quickcheck_macros::quickcheck;
+
+    #[derive(Debug, Clone)]
+    struct ValidEmailFixture(pub String);
+
+    impl Arbitrary for ValidEmailFixture {
+        fn arbitrary(g: &mut Gen) -> Self {
+            // TODO(calco): Should use the generator given by QuickCheck.
+            let email = SafeEmail().fake();
+            Self(email)
+        }
+    }
+
+    #[quickcheck]
+    fn check_valid_email_passing(email: ValidEmailFixture) -> bool {
+        Email::new(email.0).is_ok()
+    }
+}
