@@ -16,6 +16,7 @@
       - database-storage:/var/lib/postgresql/data
 #      Auto run the init database script. 
       - ./migrations/:/docker-entrypoint-initdb.d/
+      - ./scripts/docker_startup/create_user_db.sh:/docker-entrypoint-initdb.d/create_user_db.sh
     env_file:
       - ./.env
 volumes:

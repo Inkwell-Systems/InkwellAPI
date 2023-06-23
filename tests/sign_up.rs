@@ -76,3 +76,41 @@ async fn sign_up_invalid_json() {
         );
     }
 }
+
+#[tokio::test]
+async fn sign_up_fields_present_but_empty() {
+    // Arrange
+    let app = g::spawn_app().await;
+    let test_url = &format!("http://{}/sign_up", &app.address);
+
+    let test_cases = vec![
+        ("display_name", "email", "display_name"),
+        ("", "email", "display_name"),
+        ("display_name", "", "email"),
+        ("", "", "display_name"),
+    ];
+
+    let client = reqwest::Client::new();
+
+    let mut map = HashMap::new();
+    for (key, value, error_value) in test_cases {
+        map.clear();
+        map.insert(key, value);
+
+        // Act
+        let response = client
+            .post(test_url)
+            .json(&map)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+
+        // Assert
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API did not fail when the sign_up payload was: {}",
+            error_value
+        );
+    }
+}

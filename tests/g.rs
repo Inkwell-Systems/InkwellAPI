@@ -22,6 +22,8 @@ pub async fn spawn_app() -> TestApp {
     let mut config = get_config().expect("Failed to get config: ");
     config.db_settings.db_name = Secret::new(Uuid::new_v4().to_string());
 
+    println!("DB NAME: {}", config.db_settings.db_name.expose_secret());
+
     let connection_pool = configure_database(&config.db_settings).await;
 
     let server = run(listener, connection_pool.clone())
