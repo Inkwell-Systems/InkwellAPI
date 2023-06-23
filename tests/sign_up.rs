@@ -3,6 +3,7 @@
 #[path = "./g.rs"]
 mod g;
 
+use inkwell_api::routes::SignUpParams;
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -83,24 +84,32 @@ async fn sign_up_fields_present_but_empty() {
     let app = g::spawn_app().await;
     let test_url = &format!("http://{}/sign_up", &app.address);
 
-    let test_cases = vec![
-        ("display_name", "email", "display_name"),
-        ("", "email", "display_name"),
-        ("display_name", "", "email"),
-        ("", "", "display_name"),
+    let test_cases: Vec<(SignUpParams, &str)> = vec![
+        (
+            SignUpParams {
+                display_name: "".into(),
+                email: "random@gmail.com".into(),
+                profile_url: "some_profile_url".into(),
+            },
+            "Empty display name.",
+        ),
+        (
+            SignUpParams {
+                display_name: "random".into(),
+                email: "".into(),
+                profile_url: "another_profile_url".into(),
+            },
+            "Empty email.",
+        ),
     ];
 
     let client = reqwest::Client::new();
 
-    let mut map = HashMap::new();
-    for (key, value, error_value) in test_cases {
-        map.clear();
-        map.insert(key, value);
-
+    for (request, error) in test_cases {
         // Act
         let response = client
             .post(test_url)
-            .json(&map)
+            .json(&request)
             .send()
             .await
             .expect("Failed to execute request.");
@@ -110,7 +119,7 @@ async fn sign_up_fields_present_but_empty() {
             400,
             response.status().as_u16(),
             "The API did not fail when the sign_up payload was: {}",
-            error_value
+            error
         );
     }
 }

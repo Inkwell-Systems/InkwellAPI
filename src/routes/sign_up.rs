@@ -1,16 +1,16 @@
 ﻿use crate::domain::{DisplayName, UserIncomplete};
 use actix_web::{post, web, HttpResponse};
 use chrono::Utc;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
 
 // TODO(calco): Consider adding this to the domain?
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SignUpParams {
-    display_name: String,
-    email: String,
-    profile_url: String,
+    pub display_name: String,
+    pub email: String,
+    pub profile_url: String,
 }
 
 #[post("/sign_up")]
@@ -66,7 +66,7 @@ async fn add_user_to_db(
         VALUES ($1, $2, $3, $4, $5)
         "#,
         uid,
-        i_user.display_name.inner_ref(),
+        i_user.display_name.as_ref(),
         i_user.email,
         i_user.profile_url,
         created_at
