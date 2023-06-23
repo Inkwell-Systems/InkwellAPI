@@ -3,7 +3,7 @@
 #[path = "./g.rs"]
 mod g;
 
-use inkwell_api::routes::SignUpParams;
+use inkwell_api::domain::SignUpRequest;
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -47,9 +47,9 @@ async fn sign_up_invalid_json() {
     let app = g::spawn_app().await;
     let test_url = &format!("http://{}/sign_up", &app.address);
 
-    let test_cases: Vec<(SignUpParams, &str)> = vec![
+    let test_cases: Vec<(SignUpRequest, &str)> = vec![
         (
-            SignUpParams {
+            SignUpRequest {
                 display_name: "".into(),
                 email: "".into(),
                 profile_url: "some_profile_url".into(),
@@ -57,7 +57,7 @@ async fn sign_up_invalid_json() {
             "Empty display name.",
         ),
         (
-            SignUpParams {
+            SignUpRequest {
                 display_name: "random".into(),
                 email: "".into(),
                 profile_url: "another_profile_url".into(),
@@ -65,7 +65,7 @@ async fn sign_up_invalid_json() {
             "Empty email.",
         ),
         (
-            SignUpParams {
+            SignUpRequest {
                 display_name: "".into(),
                 email: "random".into(),
                 profile_url: "another_profile_url".into(),
@@ -101,9 +101,9 @@ async fn sign_up_fields_present_but_empty() {
     let app = g::spawn_app().await;
     let test_url = &format!("http://{}/sign_up", &app.address);
 
-    let test_cases: Vec<(SignUpParams, &str)> = vec![
+    let test_cases: Vec<(SignUpRequest, &str)> = vec![
         (
-            SignUpParams {
+            SignUpRequest {
                 display_name: "".into(),
                 email: "random@gmail.com".into(),
                 profile_url: "some_profile_url".into(),
@@ -111,7 +111,7 @@ async fn sign_up_fields_present_but_empty() {
             "Empty display name.",
         ),
         (
-            SignUpParams {
+            SignUpRequest {
                 display_name: "random".into(),
                 email: "".into(),
                 profile_url: "another_profile_url".into(),

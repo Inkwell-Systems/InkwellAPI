@@ -1,5 +1,5 @@
-﻿use uuid::Uuid;
-use crate::domain::{DisplayName, Email};
+﻿use crate::domain::{DisplayName, Email, SignUpRequest};
+use uuid::Uuid;
 
 pub struct User {
     pub uuid: Uuid,
@@ -20,20 +20,22 @@ impl User {
             uuid,
             email: i.email,
             display_name: i.display_name,
-            profile_url: i.profile_url
+            profile_url: i.profile_url,
         }
     }
 }
 
-impl UserIncomplete {
-    pub fn parse(email: String, display_name: String, profile_url: String) -> Result<UserIncomplete, String> {
-        let display_name = DisplayName::new(display_name)?;
-        let email = Email::new(email)?;
-        
+impl TryFrom<SignUpRequest> for UserIncomplete {
+    type Error = String;
+
+    fn try_from(value: SignUpRequest) -> Result<Self, Self::Error> {
+        let display_name = DisplayName::new(value.display_name)?;
+        let email = Email::new(value.email)?;
+
         Ok(UserIncomplete {
             email,
             display_name,
-            profile_url
+            profile_url: value.profile_url,
         })
     }
 }

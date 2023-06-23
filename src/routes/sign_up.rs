@@ -1,49 +1,36 @@
-﻿use crate::domain::{DisplayName, Email, UserIncomplete};
+﻿use crate::domain::{SignUpRequest, UserIncomplete};
 use actix_web::{post, web, HttpResponse};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
-
-// TODO(calco): Consider adding this to the domain?
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SignUpParams {
-    pub display_name: String,
-    pub email: String,
-    pub profile_url: String,
-}
 
 // TODO(calco): Implement proper actix error handling.
 // https://actix.rs/docs/errors/
 #[post("/sign_up")]
 #[tracing::instrument(
     name = "Adding a new subscriber",
-    skip(json, connection_pool),
+    skip(req, connection_pool),
     fields(
-        subscriber_email = %json.email,
-        subscriber_name = %json.display_name
+        subscriber_email = %req.email,
+        subscriber_name = %req.display_name
     )
 )]
 pub async fn sign_up(
-    json: web::Json<SignUpParams>,
+    req: web::Json<SignUpRequest>,
     connection_pool: web::Data<PgPool>,
 ) -> HttpResponse {
     // Use json.0 due to ownership stuff.
 
-    let user_i = match UserIncomplete::parse(
-        json.0.email,
-        json.0.display_name,
-        json.0.profile_url,
-    ) {
+    let user_i = match UserIncomplete::try_from(req.0) {
         Ok(user_i) => user_i,
-        Err(err) => return HttpResponse::BadRequest().finish(),
+        Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
     match add_user_to_db(user_i, &connection_pool).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(err) => {
             tracing::error!("Error saving user to database: {:?}.", err);
-            return HttpResponse::InternalServerError().finish();
+            HttpResponse::InternalServerError().finish()
         }
     }
 }
