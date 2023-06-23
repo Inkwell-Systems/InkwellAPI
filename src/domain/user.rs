@@ -1,15 +1,15 @@
 ﻿use uuid::Uuid;
-use crate::domain::DisplayName;
+use crate::domain::{DisplayName, Email};
 
 pub struct User {
     pub uuid: Uuid,
-    pub email: String,
+    pub email: Email,
     pub display_name: DisplayName,
     pub profile_url: String,
 }
 
 pub struct UserIncomplete {
-    pub email: String,
+    pub email: Email,
     pub display_name: DisplayName,
     pub profile_url: String,
 }

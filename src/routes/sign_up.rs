@@ -1,4 +1,4 @@
-﻿use crate::domain::{DisplayName, UserIncomplete};
+﻿use crate::domain::{DisplayName, Email, UserIncomplete};
 use actix_web::{post, web, HttpResponse};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -27,10 +27,24 @@ pub async fn sign_up(
     connection_pool: web::Data<PgPool>,
 ) -> HttpResponse {
     // Use json.0 due to ownership stuff.
-    let display_name = DisplayName::new(json.0.display_name);
-    let email = json.0.email;
-    let profile_url = json.0.profile_url;
 
+    let display_name = match DisplayName::new(json.0.display_name) {
+        Ok(d_name) => d_name,
+        Err(err) => {
+            println!("{}", err);
+            return HttpResponse::BadRequest().finish();
+        }
+    };
+
+    let email = match Email::new(json.0.email) {
+        Ok(d_email) => d_email,
+        Err(err) => {
+            println!("{}", err);
+            return HttpResponse::BadRequest().finish();
+        }
+    };
+
+    let profile_url = json.0.profile_url;
     let result = add_user_to_db(
         UserIncomplete {
             email,
@@ -45,7 +59,7 @@ pub async fn sign_up(
         Ok(_) => HttpResponse::Ok().finish(),
         Err(err) => {
             tracing::error!("Error saving user to database: {:?}.", err);
-            HttpResponse::InternalServerError().finish()
+            return HttpResponse::InternalServerError().finish();
         }
     }
 }
@@ -67,7 +81,7 @@ async fn add_user_to_db(
         "#,
         uid,
         i_user.display_name.as_ref(),
-        i_user.email,
+        i_user.email.as_ref(),
         i_user.profile_url,
         created_at
     )

@@ -5,12 +5,12 @@
 pub struct DisplayName(String);
 
 impl DisplayName {
-    pub fn new(s: String) -> DisplayName {
+    pub fn new(s: String) -> Result<DisplayName, &'static str> {
         if !is_valid_name(&s) {
-            panic!("Name is invalid. Pure whitespace, a length > 256 or containing any of the characters '' is deemed illegal.")
+            return Err("Name is invalid. Pure whitespace, a length > 256 or containing any of the characters '' is deemed illegal.");
         }
 
-        DisplayName(s)
+        Ok(DisplayName(s))
     }
 }
 

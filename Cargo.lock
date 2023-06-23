@@ -950,6 +950,7 @@ dependencies = [
  "config",
  "log",
  "once_cell",
+ "regex",
  "reqwest",
  "secrecy",
  "serde",
