@@ -2,6 +2,7 @@
 use chrono::Utc;
 use serde::Deserialize;
 use sqlx::PgPool;
+use unicode_segmentation::UnicodeSegmentation;
 use uuid::Uuid;
 
 #[derive(Deserialize, Debug)]
@@ -24,6 +25,10 @@ pub async fn sign_up(
     json: web::Json<SignUpParams>,
     connection_pool: web::Data<PgPool>,
 ) -> HttpResponse {
+    if !is_valid_name(&json.display_name) {
+        return HttpResponse::BadRequest().finish();
+    }
+
     let result = add_user_to_db(&json, &connection_pool).await;
 
     match result {
@@ -33,6 +38,18 @@ pub async fn sign_up(
             HttpResponse::InternalServerError().finish()
         }
     }
+}
+
+pub fn is_valid_name(name: &str) -> bool {
+    let forbidden_chars = "/(){}[]|\"\\<>\'";
+
+    let whitespace_check = name.trim().is_empty();
+    let graphesme_check = name.graphemes(true).count() > 256;
+    let forbidden_chars_check =
+        name.chars().any(|c| forbidden_chars.contains(c));
+
+    let f = whitespace_check || graphesme_check || forbidden_chars_check;
+    !f
 }
 
 #[tracing::instrument(
