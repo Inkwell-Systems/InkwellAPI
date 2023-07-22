@@ -1,6 +1,6 @@
 ﻿# Inkwell API
 
-The backend side of Inkwell, an opinionated open source platform aiming to help
+The backend side of Inkwell, an open source platform aiming to help
 game developers easily and efficiently create and implement complex and dynamic
 storylines into their games.
 
